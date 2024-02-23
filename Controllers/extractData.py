@@ -4,8 +4,9 @@ import pandas as pd
 from pandasql import sqldf
 import os, openai
 from flask import jsonify
+from dotenv import load_dotenv
 
-
+load_dotenv()
 
 class MarketDataScraper:
     def __init__(self, url):
@@ -41,15 +42,6 @@ class MarketDataScraper:
 
         print(table_df.dtypes) 
         print("table_df", table_df)
-        # query = "SELECT * FROM table_df WHERE Industry='Healthcare'"
-        # query = """
-        # SELECT *
-        # FROM table_df
-        # WHERE CAST(REPLACE(REPLACE(`Revenue growth`, '%', ''), ',', '') AS FLOAT) > 10
-        # """
-        # result = sqldf(query)
-
-        # print(result)
         
         return market_data
 
@@ -64,88 +56,38 @@ class MarketDataScraper:
 
 def NLP(question):
     
-#     openai.api_key = "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"
+    openai.api_key = os.getenv("OPENAI_API_KEY")
 
-#     completion = openai.ChatCompletion.create(
-#         model="gpt-3.5-turbo",
-#         messages=[
-#             {"role": "system", "content": """
-# Given a DataFrame in Python using the Pandas library with columns,  
-# I need an SQL query that retrieves data from this DataFrame. Assume the DataFrame name is 'table_df'.  
-# Generate an SQL query to fetch records from python dataframe. 
-# Please provide the SQL query to extract this data from the DataFrame. 
-# Must follow the date in 17-01-1972 (DD-MM-YYYY) pattern in SQL  Query" 
+    completion = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": """
+Given a DataFrame in Python using the Pandas library with columns,  
+I need an SQL query that retrieves data from this DataFrame. Assume the DataFrame name is 'table_df'.  
+Generate an SQL query to fetch records from python dataframe. 
+Please provide the SQL query to extract this data from the DataFrame. 
+Must follow the date in 17-01-1972 (DD-MM-YYYY) pattern in SQL  Query" 
 
-# Categories = {
-# 'Rank': [1, 2, 3, ........],
-# 'Name': ['Walmart', 'Amazon', 'ExxonMobil', .........],
-# 'Industry': ['Retail', 'Retail and cloud computing', 'Petroleum industry', ........],
-# 'Revenue (USD millions)': ['611,289', '513,983', '413,680', .........],
-# 'Revenue growth': ['6.7%', '9.4%', '44.8%', .........],
-# 'Employees': ['2,100,000', '1,540,000', '62,000', ......],
-# 'Headquarters': ['Bentonville, Arkansas', 'Seattle, Washington', 'Spring, Texas', .....]
-# }
+Categories = {
+'Rank': [1, 2, 3, ........],
+'Name': ['Walmart', 'Amazon', 'ExxonMobil', .........],
+'Industry': ['Retail', 'Retail and cloud computing', 'Petroleum industry', ........],
+'Revenue (USD millions)': ['611,289', '513,983', '413,680', .........],
+'Revenue growth': ['6.7%', '9.4%', '44.8%', .........],
+'Employees': ['2,100,000', '1,540,000', '62,000', ......],
+'Headquarters': ['Bentonville, Arkansas', 'Seattle, Washington', 'Spring, Texas', .....]
+}
 
-# For Example-  
-# User: provide details of companies with revenue growth greater than 10 
-# Response: SELECT * FROM table_df WHERE CAST(REPLACE(REPLACE(`Revenue growth`, '%', ''), ',', '') AS FLOAT) > 10
-# """},
-#             {"role": "user", "content": question}
-#         ]
-#     )
-#     print(completion)
-#     query = completion['choices'][0]['message']['content']
-    if(question == "Which industry generates the highest total revenue?"):
-        query = """
-SELECT Industry, SUM(CAST(REPLACE(REPLACE(`Revenue (USD millions)`, ',', ''), '$', '') AS FLOAT)) AS Total_Revenue
-FROM table_df
-GROUP BY Industry
-ORDER BY Total_Revenue DESC
-LIMIT 1;
-"""
-    elif(question == "How does the revenue growth of the top five companies compare?"):
-        query = """
-SELECT Name, `Revenue growth`
-FROM table_df
-ORDER BY CAST(REPLACE(`Revenue growth`, '%', '') AS FLOAT) DESC
-LIMIT 5;
-"""
-    elif(question == "Which state/city has the highest concentration of headquarters?"):
-        query = """
-SELECT Headquarters, COUNT(*) AS Headquarters_Count
-FROM table_df
-GROUP BY Headquarters
-ORDER BY Headquarters_Count DESC
-LIMIT 1;
-"""
-    elif(question == "How do companies in the technology sector perform in terms of revenue growth?"):
-            query = """
-SELECT Name, `Revenue growth`
-FROM table_df
-WHERE Industry LIKE '%technology%'
-ORDER BY CAST(REPLACE(`Revenue growth`, '%', '') AS FLOAT) DESC;
-"""
-    elif(question == "What is the average revenue growth rate for technology companies compared to other industries?"):
-        query = """
-SELECT 
-    CASE 
-        WHEN Industry LIKE '%technology%' THEN 'Technology'
-        ELSE 'Other Industries'
-    END AS Industry_Type,
-    AVG(CAST(REPLACE(`Revenue growth`, '%', '') AS FLOAT)) AS Avg_Revenue_Growth_Rate
-FROM table_df
-GROUP BY Industry_Type;
-"""
-    elif(question == "Are there any industries that show significant revenue growth trends?"):
-        query = """
-SELECT 
-    Industry,
-    AVG(CAST(REPLACE(`Revenue growth`, '%', '') AS FLOAT)) AS Avg_Revenue_Growth_Rate
-FROM table_df
-GROUP BY Industry
-HAVING Avg_Revenue_Growth_Rate > 10
-ORDER BY Avg_Revenue_Growth_Rate DESC;
-"""
+For Example-  
+User: provide details of companies with revenue growth greater than 10 
+Response: SELECT * FROM table_df WHERE CAST(REPLACE(REPLACE(`Revenue growth`, '%', ''), ',', '') AS FLOAT) > 10
+"""},
+            {"role": "user", "content": question}
+        ]
+    )
+    print(completion)
+    query = completion['choices'][0]['message']['content']
+   
 
     return execute(query)
 
@@ -163,8 +105,4 @@ def execute(query):
     }
 
     return jsonify(response)
-# Example usage:
-# url = 'https://example.com/market'
-# scraper = MarketDataScraper(url)
-# market_data = scraper.scrape_market_data()
-# print(market_data)
+
