@@ -32,17 +32,19 @@ pip install -r requirements.txt
 ```bash
 flask run --debugger
 ```
-5. Navigate to the Frontend directory
-5. Install the dependencies required for the Frontend.
+* Please ensure your backend server is running on port 5000.
+
+6. Navigate to the Frontend directory
+7. Install the dependencies required for the Frontend.
  ```bash
 npm install
 ```
-4. Run frontend service using command
+8. Run frontend service using command
 ```bash
 npm start
 ```
 
-3. Open the analyzer tool.
+9. Open the analyzer tool.
 
 ## Usage
 
