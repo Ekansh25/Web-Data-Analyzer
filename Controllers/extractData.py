@@ -98,8 +98,43 @@ def execute(query):
     result = sqldf(query)
 
     print(result)
-    html_table = result.to_html()
-    html_table = html_table.replace('\n', '')
+    
+# Define CSS styles
+    table_style = """
+        <style>
+        table {
+            border-collapse: collapse;
+            width: inherit;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        </style>
+    """
+
+    # Construct HTML table
+    html_table = table_style + "<table><tr>"
+    # Adding table headers
+    for column in result.columns:
+        html_table += f"<th>{column}</th>"
+    html_table += "</tr>"
+
+    # Adding table rows
+    for index, row in result.iterrows():
+        html_table += "<tr>"
+        for value in row:
+            html_table += f"<td>{value}</td>"
+        html_table += "</tr>"
+    html_table += "</table>"
+
     response = {
         'answer': html_table
     }
